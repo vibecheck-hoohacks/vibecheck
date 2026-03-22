@@ -12,18 +12,23 @@ echo "=== VibeCheck Demo Setup ==="
 echo ""
 
 # 1. Auth — save API key from environment
-echo "[1/3] Configuring OpenRouter API key..."
-uv run vibecheck auth --from-env
+echo "[1/4] Configuring OpenRouter API key..."
+uv run python -m cli.main auth --from-env
 echo ""
 
 # 2. Init competence model — max competence
-echo "[2/3] Initializing competence model (max preset)..."
-uv run vibecheck cm init --preset max
+echo "[2/4] Initializing competence model (max preset)..."
+uv run python -m cli.main cm init --preset max
 echo ""
 
-# 3. Bootstrap Claude Code hook
-echo "[3/3] Bootstrapping Claude Code hook..."
-uv run vibecheck cc init
+# 3. Bootstrap Claude Code hook at repo root
+echo "[3/4] Bootstrapping Claude Code hook at repo root..."
+uv run python -m cli.main cc init
+echo ""
+
+# 4. Bootstrap Claude Code hook inside demo/sample_project
+echo "[4/4] Bootstrapping Claude Code hook inside demo/sample_project..."
+uv run python -m cli.main cc init --target-dir demo/sample_project
 echo ""
 
 echo "=== Setup complete. Ready for step 1. ==="

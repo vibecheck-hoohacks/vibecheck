@@ -31,9 +31,10 @@ python demo/step3_low_competence.py
 Configures auth, seeds the competence model at **maximum** skill level, and bootstraps the Claude Code hook.
 
 **What it does:**
-- `vibecheck auth --from-env` — saves your OpenRouter key
-- `vibecheck cm init --preset max` — all 8 concepts at score 0.9
-- `vibecheck cc init` — generates `.claude/settings.json`
+- `python -m cli.main auth --from-env` — saves your OpenRouter key
+- `python -m cli.main cm init --preset max` — all 8 concepts at score 0.9
+- `python -m cli.main cc init` — generates repo-root `.claude/settings.json`
+- `python -m cli.main cc init --target-dir demo/sample_project` — generates a demo-local Claude hook so Step 4 works from `demo/sample_project`
 
 ### Step 1: High Competence (`step1_high_competence.py`)
 Simulates a code change (adding logging to `calculator.py`) with the user at max competence.
@@ -71,6 +72,8 @@ The real deal — launches Claude Code with the VibeCheck hook active. Claude ma
 
 **Expected behavior:** Claude proposes an edit to `calculator.py`. VibeCheck intercepts, evaluates your competence, and asks you a question. You answer in the terminal. If you pass, the edit goes through.
 
+**Important:** Step 4 intentionally runs Claude from `demo/sample_project`, so Step 0 bootstraps a second `.claude/settings.json` inside that folder that points back to the repo-root hook implementation.
+
 ## Artifacts to Inspect
 
 After running the demo, check these files:
@@ -82,7 +85,8 @@ After running the demo, check these files:
 | `state/agg/current_attempt.md` | Aggregated context for the last change |
 | `state/qa/pending/*.yaml` | QA questions that were asked |
 | `state/qa/results/*.yaml` | QA results with your answers |
-| `.claude/settings.json` | Claude Code hook configuration |
+| `.claude/settings.json` | Repo-root Claude Code hook configuration |
+| `demo/sample_project/.claude/settings.json` | Demo-local Claude hook configuration used by Step 4 |
 | `~/.vibecheck/config.toml` | Your saved API key (0600 perms) |
 
 ## Troubleshooting

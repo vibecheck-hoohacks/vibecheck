@@ -3,36 +3,28 @@
 from __future__ import annotations
 
 import json
+import shlex
+import sys
 from pathlib import Path
+from typing import Any
 
 from core.competence_store import default_competence_model, save_competence_model
 
 _STATE_SUBDIRS = ["logs", "qa/pending", "qa/results", "agg"]
 
-_HOOK_COMMAND = "python3 -m hooks.pre_tool_use"
 
-_HOOK_CONFIG = {
-    "matcher": "Edit|Write|MultiEdit",
-    "hooks": [
-        {
-            "type": "command",
-            "command": _HOOK_COMMAND,
-            "timeout": 30,
-        }
-    ],
-}
-
-
-def run_cc_init() -> None:
-    project_root = Path.cwd()
+def run_cc_init(*, target_dir: str | None = None) -> None:
+    source_root = Path(__file__).resolve().parents[1]
+    project_root = (Path(target_dir).resolve() if target_dir else Path.cwd())
     claude_dir = project_root / ".claude"
     settings_path = claude_dir / "settings.json"
     state_dir = project_root / "state"
+    hook_config = _build_hook_config(source_root)
 
     # 1. Create/merge .claude/settings.json
     claude_dir.mkdir(exist_ok=True)
     settings = _load_or_empty(settings_path)
-    _merge_hook(settings)
+    _merge_hook(settings, hook_config)
     settings_path.write_text(json.dumps(settings, indent=2) + "\n", encoding="utf-8")
     print(f"  Wrote hook config to {settings_path}")
 
@@ -52,7 +44,10 @@ def run_cc_init() -> None:
         print(f"  Competence model already exists at {cm_path}")
 
     print("\nVibeCheck is ready. Claude Code will use the PreToolUse hook")
-    print(f"to gate Edit, Write, and MultiEdit calls via: {_HOOK_COMMAND}")
+    print(
+        "to gate Edit, Write, and MultiEdit calls via: "
+        f"{hook_config['hooks'][0]['command']}"
+    )
 
 
 def _load_or_empty(path: Path) -> dict:
@@ -64,7 +59,25 @@ def _load_or_empty(path: Path) -> dict:
     return {}
 
 
-def _merge_hook(settings: dict) -> None:
+def _build_hook_config(source_root: Path) -> dict[str, Any]:
+    python_executable = shlex.quote(sys.executable)
+    root = shlex.quote(str(source_root))
+    hook_script = shlex.quote(str(source_root / "hooks" / "pre_tool_use.py"))
+    hook_command = f"sh -lc 'cd {root} && {python_executable} {hook_script}'"
+
+    return {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+            {
+                "type": "command",
+                "command": hook_command,
+                "timeout": 30,
+            }
+        ],
+    }
+
+
+def _merge_hook(settings: dict, hook_config: dict[str, Any]) -> None:
     """Add the VibeCheck PreToolUse hook without clobbering existing hooks."""
     hooks = settings.setdefault("hooks", {})
     pre_tool_use: list = hooks.setdefault("PreToolUse", [])
@@ -73,7 +86,8 @@ def _merge_hook(settings: dict) -> None:
     for entry in pre_tool_use:
         entry_hooks = entry.get("hooks", [])
         for h in entry_hooks:
-            if "hooks.pre_tool_use" in h.get("command", ""):
+            command = h.get("command", "")
+            if "hooks.pre_tool_use" in command or "pre_tool_use.py" in command:
                 return  # Already configured
 
-    pre_tool_use.append(_HOOK_CONFIG)
+    pre_tool_use.append(hook_config)

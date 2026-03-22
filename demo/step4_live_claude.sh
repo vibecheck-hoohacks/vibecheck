@@ -23,7 +23,7 @@ echo ""
 
 # Ensure low competence for dramatic effect
 echo "Ensuring low competence model..."
-uv run vibecheck cm init --preset min
+uv run python -m cli.main cm init --preset min
 echo ""
 
 # Clear previous artifacts
@@ -48,4 +48,4 @@ echo "================================================================"
 echo ""
 
 cd demo/sample_project
-claude --print "Add error logging with the logging module to the Calculator class in calculator.py. Add a logger at module level and log each operation with its arguments and result. Also add input validation that raises TypeError for non-numeric inputs."
+claude --print --permission-mode acceptEdits "Add error logging with the logging module to the Calculator class in calculator.py. Add a logger at module level and log each operation with its arguments and result. Also add input validation that raises TypeError for non-numeric inputs."

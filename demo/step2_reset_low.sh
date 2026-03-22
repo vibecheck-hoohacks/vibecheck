@@ -24,7 +24,7 @@ echo "  State artifacts cleared."
 
 # 3. Reset competence model to minimum
 echo "[3/3] Resetting competence model (min preset)..."
-uv run vibecheck cm init --preset min
+uv run python -m cli.main cm init --preset min
 echo ""
 
 echo "=== Reset complete. Competence set to minimum. Ready for step 3. ==="
