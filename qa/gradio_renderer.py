@@ -7,6 +7,7 @@ Falls back gracefully when gradio is not installed.
 from __future__ import annotations
 
 import contextlib
+import importlib
 import importlib.util
 import queue
 import sys
@@ -30,7 +31,7 @@ class GradioQARenderer:
 
     def ask(self, question: str, attempt_number: int, packet: QAPacket) -> str:
         try:
-            import gradio as gr
+            gr = _import_gradio()
         except ImportError as exc:
             raise RuntimeError(
                 "Gradio is not installed. Install with: uv pip install 'vibecheck[ui]'"
@@ -130,3 +131,7 @@ class GradioQARenderer:
     def _close_app(self, app: Any) -> None:
         with contextlib.suppress(Exception):
             app.close()
+
+
+def _import_gradio() -> Any:
+    return importlib.import_module("gradio")

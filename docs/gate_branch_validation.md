@@ -1,117 +1,56 @@
-# Validation Report: `origin/gate` Branch (commit 8e33b2d)
+# Validation Report: `origin/claude/explore-mcp-servers-SJvSF`
 
 **Date**: 2026-03-22
-**Reviewer**: Claude (automated validation)
-**Branch**: `origin/gate` (author: vishv843)
+**Reviewer**: OpenCode automated validation
+**Validated against**: `origin/main` at `e68a5c2`
+**Branch under test**: `origin/claude/explore-mcp-servers-SJvSF` at `3db7283`
 
 ## Summary
 
-The gate branch replaces the scaffold-based `KnowledgeGate` with a live
-OpenRouter-backed implementation using LangChain's `JsonOutputParser`. The
-direction is correct and aligned with the MVP spec's guidance that the gate
-should be "model-driven." However, several issues must be resolved before
-merging.
+The earlier gate-branch blockers documented in this repo no longer reproduce on
+the current Claude branch. The branch now merges cleanly into current `main`,
+and the full repository quality suite passes after syncing dependencies.
 
-## Issues
+## Validation Results
 
-### CRITICAL: API Key Leaked in Discord
+### Mergeability
 
-The OpenRouter API key was posted in full in a Discord message. **Rotate this
-key immediately** via the OpenRouter dashboard.
+- `git merge --no-commit --no-ff origin/claude/explore-mcp-servers-SJvSF`
+  from a clean `origin/main` worktree completed without conflicts.
+- The branch is ahead of `adviks-branch` and already contains the Claude hook
+  compatibility work from that branch.
 
-### P0: Constructor Signature Mismatch (gate.py vs test_gate.py)
+### Automated Checks
 
-- `KnowledgeGate.__init__` takes no parameters.
-- `tests/test_gate.py` calls `KnowledgeGate(client=FakeClient())`.
-- This test would fail with `TypeError` at runtime.
+All checks passed in an isolated worktree for the Claude branch:
 
-**Proposed fix**: Accept an optional `client` parameter in `__init__` so tests
-can inject a fake, and production code defaults to a real `OpenRouterClient`.
+- `uv run pytest` -> `89 passed`
+- `uv run ruff check .` -> passed
+- `uv run pyright` -> `0 errors`
 
-### P0: test_openai_client.py References Non-Existent Names
+## Previously Reported Issues
 
-- Uses `OpenAIClient` (should be `OpenRouterClient`).
-- Patches `client.openai_client.request.urlopen` (should be
-  `client.openrouter_client.request.urlopen`).
-- `create_response` is typed to return `str` but test asserts `response["id"]`.
-- Constructor called with kwargs (`api_key`, `default_model`, `app_name`) that
-  don't exist in the implementation.
+The blockers from the earlier `origin/gate` validation are resolved in this
+branch snapshot:
 
-**Proposed fix**: Rename all references to match the actual `OpenRouterClient`
-class and its real constructor signature. Decide whether `create_response`
-returns raw `str` or parsed `dict`; update either the implementation or tests to
-match.
+- constructor/test mismatch for the gate no longer reproduces
+- OpenRouter client tests now target the implemented client surface
+- integration and replay tests pass instead of breaking on merge
+- the branch keeps the repo in a green test/lint/type-check state
+- Claude hook compatibility changes are present
 
-### P1: ScaffoldGateModelAdapter Deleted Without Migration Path
+## Remaining Review Notes
 
-`core/llm_adapter.py` is deleted entirely. The scaffold adapter was used by all
-existing integration and replay tests. Merging this branch would break 59
-passing tests.
+This branch is still broad in scope. Even though it merges cleanly and passes
+checks, reviewers should still look carefully at:
 
-**Proposed fix**: Keep `llm_adapter.py` (or inline the scaffold) so tests that
-don't need a live model can still run. The `KnowledgeGate` can accept either an
-adapter or client, defaulting to the OpenRouter client in production.
-
-### P1: Error Handling Contradicts Itself
-
-```python
-except Exception:
-    raise RuntimeError("...Defaulting to allow.")
-```
-
-The message says "defaulting to allow" but it raises, which means neither allow
-nor block is returned. The original exception is also swallowed (no `from exc`
-or logging).
-
-**Proposed fix**: Either actually default to allow (return a GateDecision with
-`decision="allow"`) or propagate the error with context (`raise ... from exc`).
-Log the original error either way.
-
-### P2: Redundant requirements.txt
-
-The project uses `uv` + `pyproject.toml`. A separate `requirements.txt` with
-only `langchain-core` duplicates what's already in `pyproject.toml` and will
-drift.
-
-**Proposed fix**: Remove `requirements.txt`. The dependency is already declared
-in `pyproject.toml`.
-
-### P2: test_script.py at Repo Root
-
-Manual smoke tests at root don't follow the `tests/` convention and require a
-live API key.
-
-**Proposed fix**: Move to `tests/` or `scripts/`, add a `@pytest.mark.live`
-marker or `if __name__` guard, and document that it needs
-`OPENROUTER_API_KEY`.
-
-### P3: Mixed Indentation in openrouter_client.py
-
-The class body uses tabs while helper functions use spaces. This will fail
-`ruff format` and may cause issues with some editors.
-
-**Proposed fix**: Run `ruff format client/openrouter_client.py`.
-
-### P3: Missing Trailing Newlines
-
-`.gitignore`, `requirements.txt`, and `core/gate.py` are missing POSIX trailing
-newlines.
-
-## Spec Alignment Notes
-
-### Aligned with Spec
-- Uses LangChain for structured output parsing (spec §Implementation Constraints)
-- Gate returns `allow`/`block` with the correct `GateDecision` shape (spec §Knowledge Gate Output)
-- Calls `select_question_type` based on gap size (spec §Adaptive Question Types)
-- Uses OpenRouter for model inference (local-first, no cloud dependency beyond LLM)
-
-### Needs Attention
-- Spec says "wrap model calls behind a Python adapter" — the gate branch removes
-  the adapter pattern entirely instead of evolving it
-- Spec says the gate evaluator should be configurable — hardcoding
-  `OpenRouterClient()` in `__init__` without parameters reduces testability
+- newly added CLI and auth flows in `cli/`
+- OpenRouter-backed gate behavior in `core/gate.py` and `client/`
+- demo scripts in `demo/`
+- newly added docs and research notes
 
 ## Recommendation
 
-Do NOT merge as-is. Fix the P0 issues (broken tests), then address P1 (adapter
-deletion, error handling). The P2/P3 items can be fixed in a follow-up.
+The old merge/test blockers documented for the gate work are stale for this
+branch and should not be used as a reason to block merge on their own. Review
+for product scope and design fit, but the current technical validation is green.

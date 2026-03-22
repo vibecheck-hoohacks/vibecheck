@@ -41,10 +41,11 @@ def handle_pre_tool_use(
     logger = event_logger or EventLogger(state_dir / "logs" / "events.jsonl")
 
     tool_name = get_tool_name(dict(payload))
-    logger.log("hook_payload_received", tool_name=tool_name)
+    logged_tool_name = tool_name or "unknown"
+    logger.log("hook_payload_received", tool_name=logged_tool_name)
 
     if not is_code_mutation_tool(tool_name):
-        logger.log("non_mutation_bypass", tool_name=tool_name, status="allow")
+        logger.log("non_mutation_bypass", tool_name=logged_tool_name, status="allow")
         return allow_response(
             "Non-mutation tool call bypassed by VibeCheck scaffold.",
             {"tool_name": tool_name},

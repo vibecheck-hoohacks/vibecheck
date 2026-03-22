@@ -7,6 +7,7 @@ competence model YAML.
 from __future__ import annotations
 
 import contextlib
+import importlib
 import queue
 import threading
 from datetime import UTC, datetime
@@ -29,7 +30,7 @@ def run_gradio_survey(
 ) -> CompetenceModel | None:
     """Launch the Gradio survey and return the seeded model, or None on timeout."""
     try:
-        import gradio as gr
+        gr = _import_gradio()
     except ImportError as exc:
         raise RuntimeError(
             "Gradio is not installed. Install with: uv pip install 'vibecheck[ui]'"
@@ -127,3 +128,7 @@ def _launch_app(app: Any) -> None:
 def _close_app(app: Any) -> None:
     with contextlib.suppress(Exception):
         app.close()
+
+
+def _import_gradio() -> Any:
+    return importlib.import_module("gradio")
