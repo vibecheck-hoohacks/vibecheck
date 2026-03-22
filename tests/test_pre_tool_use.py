@@ -38,7 +38,7 @@ def test_pre_tool_use_allows_small_write_with_realistic_claude_payload(tmp_path:
 
     aggregated_context = (state_dir / "agg" / "current_attempt.md").read_text(encoding="utf-8")
 
-    assert response["decision"] == "allow"
+    assert response["hookSpecificOutput"]["permissionDecision"] == "allow"
     assert "Please rename the variable." in aggregated_context
     assert "assistant: I will update the file." in aggregated_context
     assert "Repository note for hook tests." in aggregated_context

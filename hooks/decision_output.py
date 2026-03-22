@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Literal
+
+HookDecision = Literal["allow", "deny"]
 
 
 def allow_response(reason: str, metadata: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -17,13 +19,16 @@ def emit_decision(response: dict[str, Any]) -> None:
 
 
 def _decision_response(
-    decision: str,
+    decision: HookDecision,
     reason: str,
     metadata: dict[str, Any] | None,
 ) -> dict[str, Any]:
     response: dict[str, Any] = {
-        "decision": decision,
-        "reason": reason,
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": decision,
+            "permissionDecisionReason": reason,
+        }
     }
     if metadata:
         response["metadata"] = metadata

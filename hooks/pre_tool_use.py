@@ -1,8 +1,15 @@
+# ruff: noqa: E402
+
 from __future__ import annotations
 
+import sys
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from core.competence_store import load_competence_model
 from core.context_aggregation import build_aggregated_context
