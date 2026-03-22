@@ -24,6 +24,16 @@ uv run ruff format .
 uv run pyright
 ```
 
+## CI
+
+GitHub Actions runs the same core checks on pushes and pull requests to `main`:
+
+- `uv run ruff check .`
+- `uv run pyright`
+- `uv run pytest`
+
+The workflow lives at `.github/workflows/ci.yml`.
+
 ## Notes
 
 - The current gate adapter is a deterministic scaffold, not the final model-backed evaluator.
