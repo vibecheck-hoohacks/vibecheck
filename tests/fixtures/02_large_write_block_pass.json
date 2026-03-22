@@ -1,0 +1,23 @@
+{
+  "_description": "Large multi-line Write that should be BLOCKED, then PASS QA on first attempt with a valid plain_english answer.",
+  "_expected_gate_decision": "block",
+  "_expected_qa_outcome": "pass_first_try",
+  "_expected_artifacts": {
+    "state/agg/current_attempt.md": "created with full diff context",
+    "state/competence_model.yaml": "updated with +0.08 delta, pass_first_try evidence",
+    "state/qa/pending/<proposal_id>.yaml": "question_type, prompt_seed, relevant_concepts",
+    "state/qa/results/<proposal_id>.yaml": "passed=true, attempt_count=1, final_decision=allow",
+    "state/logs/events.jsonl": "full lifecycle including qa_attempt_started, qa_answer_evaluated, competence_updated"
+  },
+  "_fake_answer": "This change assigns several constants safely without altering control flow semantics.",
+  "tool_name": "Write",
+  "session_id": "session-fixture-02",
+  "tool_use_id": "tool-fixture-02",
+  "cwd": "/repo",
+  "user_prompt_excerpt": "Expand the constants module with named values.",
+  "input": {
+    "path": "core/constants.py",
+    "old_content": "value = 1\n",
+    "new_content": "value = 1\nalpha = 1\nbeta = 2\ngamma = 3\ndelta = 4\nepsilon = 5\nzeta = 6\n"
+  }
+}

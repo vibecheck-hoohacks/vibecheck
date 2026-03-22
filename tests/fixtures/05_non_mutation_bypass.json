@@ -1,0 +1,14 @@
+{
+  "_description": "Non-mutation tool (Bash) — should bypass the gate entirely with an allow response.",
+  "_expected_gate_decision": "bypass (not evaluated)",
+  "_expected_artifacts": {
+    "state/logs/events.jsonl": "hook_payload_received, non_mutation_bypass",
+    "state/agg/": "not created",
+    "state/qa/": "not created",
+    "state/competence_model.yaml": "not created or modified"
+  },
+  "tool_name": "Bash",
+  "session_id": "session-fixture-05",
+  "tool_use_id": "tool-fixture-05",
+  "cwd": "/repo"
+}

@@ -1,0 +1,17 @@
+{
+  "_description": "Write payload missing required new_content/content — should raise HookPayloadError and produce a deny response.",
+  "_expected_outcome": "HookPayloadError raised",
+  "_expected_artifacts": {
+    "state/": "event log created with hook_payload_received, then error",
+    "state/agg/": "not created",
+    "state/qa/": "not created"
+  },
+  "tool_name": "Write",
+  "session_id": "session-fixture-04",
+  "tool_use_id": "tool-fixture-04",
+  "cwd": "/repo",
+  "input": {
+    "path": "core/example.py",
+    "old_content": "value = 1\n"
+  }
+}

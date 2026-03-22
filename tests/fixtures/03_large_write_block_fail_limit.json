@@ -1,0 +1,21 @@
+{
+  "_description": "Large Write that should be BLOCKED, then FAIL all 3 QA attempts (answers too short).",
+  "_expected_gate_decision": "block",
+  "_expected_qa_outcome": "fail_limit_reached",
+  "_expected_artifacts": {
+    "state/competence_model.yaml": "updated with -0.06 delta, fail_limit_reached evidence, epistemic debt note",
+    "state/qa/results/<proposal_id>.yaml": "passed=false, attempt_count=3, final_decision=allow",
+    "state/logs/events.jsonl": "3x qa_attempt_started, 3x qa_answer_evaluated (all failed), competence_updated with fail status"
+  },
+  "_fake_answers": ["no", "nope", "dunno"],
+  "tool_name": "Write",
+  "session_id": "session-fixture-03",
+  "tool_use_id": "tool-fixture-03",
+  "cwd": "/repo",
+  "user_prompt_excerpt": "Add a large constants block.",
+  "input": {
+    "path": "core/big_constants.py",
+    "old_content": "",
+    "new_content": "A = 1\nB = 2\nC = 3\nD = 4\nE = 5\nF = 6\nG = 7\nH = 8\nI = 9\nJ = 10\n"
+  }
+}

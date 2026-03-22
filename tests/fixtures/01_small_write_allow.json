@@ -1,0 +1,19 @@
+{
+  "_description": "Small single-file Write that should be ALLOWED by the scaffold gate (<=5 LOC, 1 file).",
+  "_expected_gate_decision": "allow",
+  "_expected_artifacts": {
+    "state/agg/current_attempt.md": "created with metadata and diff",
+    "state/competence_model.yaml": "loaded or created, not updated",
+    "state/qa/": "no pending or result files created",
+    "state/logs/events.jsonl": "hook_payload_received, mutation_normalized, context_aggregated, gate_decision_made, decision_returned"
+  },
+  "tool_name": "Write",
+  "session_id": "session-fixture-01",
+  "tool_use_id": "tool-fixture-01",
+  "cwd": "/repo",
+  "user_prompt_excerpt": "Rename the variable to be more descriptive.",
+  "tool_input": {
+    "file_path": "core/example.py",
+    "content": "total_count = 1\n"
+  }
+}
