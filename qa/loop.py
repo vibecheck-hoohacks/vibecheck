@@ -12,7 +12,7 @@ from core.models import ChangeProposal, CompetenceModel, GateDecision, QAAttempt
 from qa.competence_updates import apply_qa_outcome
 from qa.evaluation import evaluate_answer
 from qa.question_generation import build_question_prompt
-from qa.terminal_renderer import TerminalQARenderer
+from qa.renderer_selection import select_renderer
 
 
 class QARenderer(Protocol):
@@ -69,7 +69,7 @@ class QALoop:
                 attempt_number=attempt_number,
                 competence_entries=gate_decision.relevant_competence_entries,
             )
-            answer = self.renderer.ask(question, attempt_number, gate_decision.qa_packet)
+            answer = renderer.ask(question, attempt_number, gate_decision.qa_packet)
             evaluation = evaluate_answer(
                 question=question,
                 answer=answer,
