@@ -10,7 +10,10 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = {text = "MIT"}
 authors = [
-    {name = "Your Name", email = "you@example.com"},
+    {name = "Om Arya", email = "om.arya0577@gmail.com"},
+    {name = "Advik Bhatt", email = "advikbwork@gmail.com"},
+    {name = "Blaise Duncan", email = "blaiseduncan1@gmail.com"},
+    (name = "Vishv Joshi", email = "vishvjoshi2001@gmail.com")
 ]
 keywords = ["claude", "ai", "coding", "competence", "guardrail", "llm"]
 classifiers = [
