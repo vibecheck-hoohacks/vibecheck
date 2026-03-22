@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "context7": {
+      "transport": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "gradio": {
+      "transport": "http",
+      "url": "https://gradio-docs-mcp.hf.space/gradio_api/mcp/"
+    },
+    "langchain-docs": {
+      "transport": "http",
+      "url": "https://docs.langchain.com/mcp"
+    }
+  }
+}
