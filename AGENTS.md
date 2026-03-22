@@ -3,14 +3,14 @@ This file is for human contributors and coding agents working in `vibecheck`.
 
 ## Repository Status
 - This repository is currently spec-first and early-stage.
-- The current product and architecture source of truth is `prompts/unified_mvp_spec.md`.
+- The current product and architecture source of truth is `finalized_MVP_spec.md`.
 - The intended implementation direction is Python-first.
-- TypeScript or Bun is acceptable only for optional richer QA UI surfaces.
-- As of this file, there is no committed `pyproject.toml`, `package.json`, `Makefile`, `pytest.ini`, `.cursorrules`, `.cursor/rules/`, or `.github/copilot-instructions.md`.
+- Gradio is acceptable for optional richer QA UI surfaces when terminal UX is not enough.
+- The repository now uses `uv` for Python dependency and environment management.
 - No prior `AGENTS.md` existed in this repository.
 
 ## Source of Truth
-- Treat `prompts/unified_mvp_spec.md` as authoritative for MVP shape and terminology.
+- Treat `finalized_MVP_spec.md` as authoritative for MVP shape and terminology.
 - Treat the other files in `prompts/` as design context, not equal-weight implementation specs.
 - If prompt files conflict, prefer the unified spec and the latest direct user instruction.
 - Keep the MVP narrow: code agent interface, knowledge gate, QA loop.
@@ -19,6 +19,7 @@ This file is for human contributors and coding agents working in `vibecheck`.
 - Before adding or changing any external dependency, framework integration, or provider API usage, consult the configured MCP documentation servers first.
 - Repo MCP config files: `opencode.json` and `mcp-servers.json`.
 - `context7` / `context7-mcp`: use for third-party package docs and examples.
+- `gradio`: use for Gradio API and UI documentation when the optional browser flow is touched.
 - `langchain-docs` / `langchain-docs-mcp`: use for LangChain Python APIs, structured outputs, wrappers, and related patterns.
 
 Expected workflow for external libraries:
@@ -32,24 +33,24 @@ Do not guess library APIs when MCP docs are available.
 
 ## Build / Lint / Test Commands
 Current repo state:
-- There is no committed runtime/tooling configuration yet.
-- If you are only editing docs/specs, no build step exists.
-- If you introduce Python code, also introduce the minimal tooling needed to run and verify it.
+- The repository uses `uv` with a local `.venv`.
+- Use `uv sync` to install runtime and development dependencies.
 
 Preferred Python command conventions once code lands:
-- Run all tests: `python -m pytest`
-- Run one test file: `python -m pytest tests/path/test_file.py`
-- Run one test case: `python -m pytest tests/path/test_file.py::test_name`
-- Run tests by keyword: `python -m pytest -k "keyword"`
-- Run with verbose output: `python -m pytest -vv`
-- Lint: `python -m ruff check .`
-- Format: `python -m ruff format .`
-- Type check: `python -m pyright`
+- Install dependencies: `uv sync`
+- Run all tests: `uv run pytest`
+- Run one test file: `uv run pytest tests/path/test_file.py`
+- Run one test case: `uv run pytest tests/path/test_file.py::test_name`
+- Run tests by keyword: `uv run pytest -k "keyword"`
+- Run with verbose output: `uv run pytest -vv`
+- Lint: `uv run ruff check .`
+- Format: `uv run ruff format .`
+- Type check: `uv run pyright`
 
 If the repository later adopts a different toolchain, update this section immediately.
 
 ## Pre-Change Checklist
-- Read `prompts/unified_mvp_spec.md`.
+- Read `finalized_MVP_spec.md`.
 - Inspect the worktree with `git status --short`.
 - Do not overwrite or revert unrelated local changes.
 - Check whether the task touches Python-only code, optional web UI code, or both.
@@ -143,7 +144,7 @@ Do not create deeply nested abstractions unless the codebase has earned them.
 
 ## Web / GUI Guidance
 - Default to Python-first implementation.
-- Only add Bun or TypeScript when the QA interaction clearly benefits from a browser UI.
+- Prefer Gradio when the QA interaction clearly benefits from a browser UI.
 - Keep any web surface minimal and local-first.
 - Do not let optional UI code dominate the repository structure.
 

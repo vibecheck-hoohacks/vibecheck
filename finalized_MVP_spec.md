@@ -12,7 +12,7 @@ The MVP consists of exactly three components:
 2. `Knowledge gate`
 3. `QA loop`
 
-The system targets Claude Code first and is Python-first end to end, with TypeScript or Bun permitted only where a browser-based QA interface is clearly useful.
+The system targets Claude Code first and is Python-first end to end, with Gradio or another lightweight Python web UI permitted only where a browser-based QA interface is clearly useful.
 
 ## Core Invariants
 
@@ -218,7 +218,7 @@ Preferred policy:
 - use terminal-native interaction for `plain_english` and `true_false` when feasible
 - use a GUI or web view for `faded_example` or fill-in-the-blank coding questions when that materially improves usability
 - if both terminal and GUI are feasible, choose by question type rather than forcing a single UI mode
-- if a browser UI is required, a lightweight Bun-based local web app is acceptable
+- if a browser UI is required, prefer a lightweight local Gradio app or similarly small Python-native web UI
 
 ### Adaptive Question Types
 
@@ -305,7 +305,7 @@ Suggested sections:
 ## Implementation Constraints
 
 - Python-first core implementation
-- TypeScript/Bun only when needed for richer GUI interaction
+- Gradio or another lightweight Python web UI only when needed for richer GUI interaction
 - LangChain utilities are acceptable for structured output handling and provider wrappers
 - No LangGraph
 - No long-lived orchestration state object passed between turns

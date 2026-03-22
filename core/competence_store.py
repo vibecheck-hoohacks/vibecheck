@@ -1,0 +1,102 @@
+from __future__ import annotations
+
+from dataclasses import asdict
+from datetime import UTC, datetime
+from pathlib import Path
+
+import yaml
+
+from core.models import CompetenceEntry, CompetenceEvidence, CompetenceModel
+
+
+def load_competence_model(path: Path) -> CompetenceModel:
+    if not path.exists():
+        model = default_competence_model()
+        save_competence_model(model, path)
+        return model
+
+    raw_data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    concepts: dict[str, CompetenceEntry] = {}
+    for concept_name, raw_entry in dict(raw_data.get("concepts", {})).items():
+        raw_entry = dict(raw_entry)
+        evidence = [
+            CompetenceEvidence(
+                timestamp=str(item.get("timestamp", _utc_now_iso())),
+                outcome=str(item.get("outcome", "unknown")),
+                note=str(item.get("note", "")),
+            )
+            for item in raw_entry.get("evidence", [])
+        ]
+        concepts[str(concept_name)] = CompetenceEntry(
+            score=float(raw_entry.get("score", 0.5)),
+            notes=[str(note) for note in raw_entry.get("notes", [])],
+            evidence=evidence,
+        )
+
+    return CompetenceModel(
+        user_id=str(raw_data.get("user_id", "local_default")),
+        updated_at=str(raw_data.get("updated_at", _utc_now_iso())),
+        concepts=concepts,
+    )
+
+
+def save_competence_model(model: CompetenceModel, path: Path) -> None:
+    payload = {
+        "user_id": model.user_id,
+        "updated_at": model.updated_at,
+        "concepts": {
+            concept: {
+                "score": entry.score,
+                "notes": entry.notes,
+                "evidence": [asdict(item) for item in entry.evidence],
+            }
+            for concept, entry in model.concepts.items()
+        },
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+
+
+def update_competence_entry(
+    model: CompetenceModel,
+    *,
+    concept: str,
+    delta: float,
+    note: str,
+    outcome: str,
+) -> CompetenceModel:
+    entry = model.concepts.get(concept)
+    if entry is None:
+        entry = CompetenceEntry(score=0.5)
+        model.concepts[concept] = entry
+
+    entry.score = min(1.0, max(0.0, round(entry.score + delta, 2)))
+    if note:
+        entry.notes.append(note)
+    entry.evidence.append(
+        CompetenceEvidence(
+            timestamp=_utc_now_iso(),
+            outcome=outcome,
+            note=note,
+        )
+    )
+    model.updated_at = _utc_now_iso()
+    return model
+
+
+def default_competence_model() -> CompetenceModel:
+    return CompetenceModel(
+        user_id="local_default",
+        updated_at=_utc_now_iso(),
+        concepts={
+            "python_basics": CompetenceEntry(
+                score=0.5,
+                notes=["Initial scaffold entry for Python changes."],
+                evidence=[],
+            )
+        },
+    )
+
+
+def _utc_now_iso() -> str:
+    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")

@@ -5,6 +5,10 @@
       "type": "remote",
       "url": "https://mcp.context7.com/mcp"
     },
+    "gradio": {
+      "type": "remote",
+      "url": "https://gradio-docs-mcp.hf.space/gradio_api/mcp/"
+    },
     "langchain-docs-mcp": {
       "type": "remote",
       "url": "https://docs.langchain.com/mcp"
