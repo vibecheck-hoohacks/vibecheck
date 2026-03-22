@@ -1,4 +1,5 @@
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -6,7 +7,13 @@ from core.errors import UnsupportedMutationError
 from hooks.pre_tool_use import handle_pre_tool_use
 
 
-def test_pre_tool_use_allows_small_write_with_realistic_claude_payload(tmp_path: Path) -> None:
+def test_pre_tool_use_allows_small_write_with_realistic_claude_payload(
+    tmp_path: Path, monkeypatch
+) -> None:
+    mock_client = MagicMock()
+    mock_client.create_response.return_value = '{"decision": "allow", "reasoning": "Small change.", "confidence": 0.9, "relevant_concepts": []}'
+    monkeypatch.setattr("core.gate.OpenRouterClient", lambda: mock_client)
+
     repo = tmp_path / "repo"
     state_dir = tmp_path / "state"
     target = repo / "core" / "example.py"

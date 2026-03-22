@@ -4,7 +4,7 @@ from typing import Any
 
 from langchain_core.output_parsers import JsonOutputParser
 
-from client.openrouter_client import InputMessage, OpenRouterClient, OpenRouterClientError
+from client.openrouter_client import InputMessage, OpenRouterClient
 from core.models import (
     AggregatedContext,
     ChangeProposal,
@@ -20,8 +20,8 @@ from qa.question_generation import select_question_type
 
 class KnowledgeGate:
 
-    def __init__(self):
-        self._client = OpenRouterClient()
+    def __init__(self, client: OpenRouterClient | None = None):
+        self._client = client or OpenRouterClient()
 
     def evaluate(
         self,
@@ -46,8 +46,10 @@ class KnowledgeGate:
                 aggregated_context=aggregated_context,
                 competence_model=competence_model,
             )
-        except Exception:
-            raise RuntimeError("Knowledge gate evaluation failed due to an error. Defaulting to allow.")
+        except Exception:  # noqa: B904
+            raise RuntimeError(
+                "Knowledge gate evaluation failed due to an error. Defaulting to allow."
+            ) from None
 
     def _create_input_data(
         self,
