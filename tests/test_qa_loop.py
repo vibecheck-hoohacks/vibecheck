@@ -7,6 +7,8 @@ from core.models import (
     GateDecision,
     QAPacket,
 )
+from qa.evaluation import AnswerEvaluation
+from qa.llm_wrapper import GeneratedQuestion
 from qa.loop import QALoop
 
 
@@ -22,7 +24,36 @@ class FakeRenderer:
         return answer
 
 
-def test_qa_loop_passes_after_retry(tmp_path) -> None:
+class FakeLLMClient:
+    def __init__(self, evaluations: list[AnswerEvaluation]) -> None:
+        self._evaluations = evaluations
+        self._eval_index = 0
+        self._question_count = 0
+
+    def generate_question(self, gate_decision, attempt_number, competence_entries=None):
+        self._question_count += 1
+        return GeneratedQuestion(
+            question=f"Generated question for attempt {attempt_number}",
+            distractors=["Wrong answer 1", "Wrong answer 2"],
+            hint="Think about the mechanism.",
+        )
+
+    def evaluate_answer(self, question, answer, question_type, context_excerpt, attempt_number):
+        evaluation = self._evaluations[self._eval_index]
+        self._eval_index += 1
+        return evaluation
+
+
+def test_qa_loop_passes_after_retry(tmp_path, monkeypatch) -> None:
+    from qa import llm_wrapper as llm_wrapper_module
+
+    fake_evaluations = [
+        AnswerEvaluation(passed=False, feedback="Try again with more detail."),
+        AnswerEvaluation(passed=True, feedback="Good explanation!"),
+    ]
+    fake_client = FakeLLMClient(fake_evaluations)
+    llm_wrapper_module._client = fake_client
+
     proposal = ChangeProposal(
         proposal_id="proposal-1",
         session_id="session-1",

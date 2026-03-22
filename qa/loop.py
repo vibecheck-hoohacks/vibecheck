@@ -11,7 +11,7 @@ from core.errors import StateValidationError
 from core.models import ChangeProposal, CompetenceModel, GateDecision, QAAttempt, QAPacket, QAResult
 from qa.competence_updates import apply_qa_outcome
 from qa.evaluation import evaluate_answer
-from qa.question_generation import build_follow_up_question, build_question_prompt
+from qa.question_generation import build_question_prompt
 from qa.terminal_renderer import TerminalQARenderer
 
 
@@ -49,10 +49,21 @@ class QALoop:
         )
 
         attempts: list[QAAttempt] = []
-        question = build_question_prompt(gate_decision, attempt_number=1)
+        context_excerpt = gate_decision.qa_packet.context_excerpt or ""
         for attempt_number in range(1, self.max_attempts + 1):
+            question = build_question_prompt(
+                gate_decision,
+                attempt_number=attempt_number,
+                competence_entries=gate_decision.relevant_competence_entries,
+            )
             answer = self.renderer.ask(question, attempt_number, gate_decision.qa_packet)
-            evaluation = evaluate_answer(gate_decision.qa_packet.question_type, answer)
+            evaluation = evaluate_answer(
+                question=question,
+                answer=answer,
+                question_type=gate_decision.qa_packet.question_type,
+                context_excerpt=context_excerpt,
+                attempt_number=attempt_number,
+            )
             attempts.append(
                 QAAttempt(
                     attempt_number=attempt_number,
@@ -80,8 +91,6 @@ class QALoop:
                 )
                 _write_yaml(result_path, _result_payload(result))
                 return result
-            if attempt_number < self.max_attempts:
-                question = build_follow_up_question(question, evaluation.feedback)
 
         apply_qa_outcome(
             competence_model,
