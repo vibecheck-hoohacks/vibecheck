@@ -1,8 +1,11 @@
+import json
 from pathlib import Path
 
 import pytest
+import yaml
 
 from core.errors import HookPayloadError, UnsupportedMutationError
+from core.event_logger import EventLogger
 from hooks.pre_tool_use import handle_pre_tool_use
 from qa.terminal_renderer import TerminalQARenderer
 
@@ -25,6 +28,13 @@ def test_pre_tool_use_bypasses_non_mutation_tools(tmp_path: Path) -> None:
     # Event log is created even for bypassed tools, but no QA or agg artifacts
     assert not (state_dir / "agg").exists()
     assert not (state_dir / "qa").exists()
+
+    # Event log records the bypass
+    events = _read_events(state_dir / "logs" / "events.jsonl")
+    event_names = [e["event"] for e in events]
+    assert "hook_payload_received" in event_names
+    assert "non_mutation_bypass" in event_names
+    assert "mutation_normalized" not in event_names
 
 
 def test_pre_tool_use_allows_small_write_with_realistic_claude_payload(tmp_path: Path) -> None:
@@ -64,6 +74,17 @@ def test_pre_tool_use_allows_small_write_with_realistic_claude_payload(tmp_path:
     assert "Please rename the variable." in aggregated_context
     assert "assistant: I will update the file." in aggregated_context
     assert "Repository note for hook tests." in aggregated_context
+
+    # Event log records allow flow without QA events
+    events = _read_events(state_dir / "logs" / "events.jsonl")
+    event_names = [e["event"] for e in events]
+    assert "hook_payload_received" in event_names
+    assert "mutation_normalized" in event_names
+    assert "context_aggregated" in event_names
+    assert "gate_decision_made" in event_names
+    assert "decision_returned" in event_names
+    # No QA events in allow flow
+    assert "qa_attempt_started" not in event_names
 
 
 def test_pre_tool_use_runs_blocked_flow_and_persists_qa_artifacts(
@@ -105,14 +126,48 @@ def test_pre_tool_use_runs_blocked_flow_and_persists_qa_artifacts(
 
     proposal_id = response["metadata"]["proposal_id"]
     result_artifact = state_dir / "qa" / "results" / f"{proposal_id}.yaml"
-    competence_model = (state_dir / "competence_model.yaml").read_text(encoding="utf-8")
+    pending_artifact = state_dir / "qa" / "pending" / f"{proposal_id}.yaml"
+    agg_artifact = state_dir / "agg" / "current_attempt.md"
+    competence_text = (state_dir / "competence_model.yaml").read_text(encoding="utf-8")
 
     assert response["hookSpecificOutput"]["permissionDecision"] == "allow"
     assert response["metadata"]["gate_decision"] == "block"
     assert response["metadata"]["qa_passed"] is True
     assert response["metadata"]["attempt_count"] == 1
     assert result_artifact.exists()
-    assert "pass_first_try" in competence_model
+    assert "pass_first_try" in competence_text
+
+    # Aggregated context artifact exists with expected sections
+    assert agg_artifact.exists()
+    agg_content = agg_artifact.read_text(encoding="utf-8")
+    assert "## Metadata" in agg_content or "proposal_id" in agg_content.lower()
+
+    # Pending artifact has expected structure
+    assert pending_artifact.exists()
+    pending_data = yaml.safe_load(pending_artifact.read_text(encoding="utf-8"))
+    assert pending_data["proposal_id"] == proposal_id
+    assert "question_type" in pending_data
+
+    # Result artifact has expected structure
+    result_data = yaml.safe_load(result_artifact.read_text(encoding="utf-8"))
+    assert result_data["proposal_id"] == proposal_id
+    assert result_data["passed"] is True
+    assert result_data["final_decision"] == "allow"
+    assert len(result_data["attempts"]) == 1
+
+    # Event log captures full lifecycle
+    events = _read_events(state_dir / "logs" / "events.jsonl")
+    event_names = [e["event"] for e in events]
+    assert event_names == [
+        "hook_payload_received",
+        "mutation_normalized",
+        "context_aggregated",
+        "gate_decision_made",
+        "qa_attempt_started",
+        "qa_answer_evaluated",
+        "competence_updated",
+        "decision_returned",
+    ]
 
 
 def test_pre_tool_use_raises_for_invalid_mutation_payload(tmp_path: Path) -> None:
@@ -147,3 +202,15 @@ def test_pre_tool_use_raises_for_unsupported_mutation_shape(tmp_path: Path) -> N
             },
             state_dir=tmp_path / "state",
         )
+
+
+def _read_events(log_path: Path) -> list[dict]:
+    """Read JSONL events from the event log."""
+    if not log_path.exists():
+        return []
+    events = []
+    for line in log_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line:
+            events.append(json.loads(line))
+    return events
