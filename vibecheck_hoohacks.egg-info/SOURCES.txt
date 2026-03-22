@@ -20,6 +20,8 @@ core/event_logger.py
 core/gate.py
 core/models.py
 core/normalize.py
+core/resources/__init__.py
+core/resources/default_concept_graph.yaml
 hooks/__init__.py
 hooks/decision_output.py
 hooks/pre_tool_use.py

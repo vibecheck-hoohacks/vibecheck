@@ -1,2 +1,3 @@
 [console_scripts]
 vibecheck = cli.main:main
+vibecheck-hook = hooks.pre_tool_use:main

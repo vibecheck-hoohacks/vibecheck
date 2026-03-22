@@ -30,7 +30,7 @@ Publishing to GitHub Releases (Alternative)
 ```
 uv pip install build twine
 
-python -m build
+rm -rf dist/ build/ && uv run python -m build
 
-twine upload dist/*
+twine upload dist/* -u __token__ -p {token}
 ```
