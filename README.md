@@ -1,5 +1,10 @@
 # VibeCheck
 
+> [!IMPORTANT]
+> This repository is archived as a snapshot of the project at the end of the hackathon.
+> Active development has moved to `https://github.com/team-vibecheck/vibecheck`.
+> If you are looking for the current codebase, issues, or future updates, use the new repository instead.
+
 VibeCheck is a Python-first competence-aware guardrail in the Claude Code mutation path.
 
 ## Architecture
